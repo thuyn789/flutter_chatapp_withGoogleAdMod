@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 class AuthServices {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final database = FirebaseFirestore.instance;
+  final String urlDefaultAvatar =
+      "https://firebasestorage.googleapis.com/v0/b/supercool-rental.appspot.com/o/default_profile_photo.jpg?alt=media&token=c338dac0-943d-46b9-8748-ab5911b0e423";
 
   //Login with existing username and password credential
   Future<bool> login(String email, String password) async {
@@ -42,12 +44,14 @@ class AuthServices {
     final gUser = userCredential.user;
 
     if(userCredential.additionalUserInfo!.isNewUser){
-      await database.collection("users").doc(gUser!.uid).set(
-          {
+      await database.collection("users").doc(gUser!.uid).set({
             'user_id': gUser.uid.trim(),
-            'name': gUser.displayName!.trim(),
+            'first_name': gUser.displayName!.trim(),
+            'last_name': ''.trim(),
             'email': gUser.email!.trim(),
             'user_role': 'customer'.trim(),
+            'reg_date_time': gUser.metadata.creationTime,
+            'urlAvatar' : urlDefaultAvatar.trim()
           });
     }
 
@@ -55,6 +59,31 @@ class AuthServices {
     // back to login screen for further processing
     return gUser;
   }
+
+  //Anonymous sign-in
+  Future<User?> signInAnon() async {
+
+    UserCredential userCredential = await FirebaseAuth.instance.signInAnonymously();
+
+    final anonUser = userCredential.user;
+
+    if(userCredential.additionalUserInfo!.isNewUser){
+      await database.collection("users").doc(anonUser!.uid).set({
+            'user_id': anonUser.uid.trim(),
+            'first_name': 'Anonymous'.trim(),
+            'last_name': 'Anonymous'.trim(),
+            'email': 'N/A'.trim(),
+            'user_role': 'customer'.trim(),
+            'reg_date_time': anonUser.metadata.creationTime,
+            'urlAvatar' : urlDefaultAvatar.trim()
+          });
+    }
+
+    // Once signed in, return the google user
+    // back to login screen for further processing
+    return anonUser;
+  }
+
 
   //Register and store new user information
   Future<bool> signUp(String firstName, String lastName, String email, String password) async {
@@ -71,7 +100,8 @@ class AuthServices {
               'last_name':  lastName.trim(),
               'email': email.trim(),
               'user_role': 'customer'.trim(),
-              'reg_date_time': user.metadata.creationTime
+              'reg_date_time': user.metadata.creationTime,
+              'urlAvatar' : urlDefaultAvatar.trim()
             });
       });
         return true;
