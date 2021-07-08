@@ -72,7 +72,7 @@ flutter_native_splash:
 ## defaultConfig
 
 - applicationId "com.example.chatapp_admod"
-- minSdkVersion 24
+- minSdkVersion 28
 - targetSdkVersion 30
 
 
