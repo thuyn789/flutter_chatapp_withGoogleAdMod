@@ -116,6 +116,12 @@ var firebaseConfig = {
    + (4) --> messages collection that stores all individual messages exchanged between 2 users
 
 
+## Ad Structure
+
+
+## App Test
+
+
 ## Login Credentials for Demo Accounts
 
 - Admin: admin@admin.com, password
