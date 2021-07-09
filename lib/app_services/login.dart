@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -16,8 +15,58 @@ class LoginPage extends StatefulWidget {
 class _LoginState extends State<LoginPage> {
   final _email = TextEditingController();
   final _password = TextEditingController();
-
   bool _hideText = true;
+
+  late RewardedAd _rewardedAd;
+  bool _isRewardedAdReady = false;
+
+  void _loadRewardedAd() {
+    RewardedAd.load(
+      adUnitId: AdHelper.rewardedAdUnitId,
+      request: AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          this._rewardedAd = ad;
+
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              setState(() {
+                _isRewardedAdReady = false;
+              });
+              _loadRewardedAd();
+
+              //Navigator.pushReplacement(
+                  //context, MaterialPageRoute(builder: (context) => LoginPage()));
+
+              ad.dispose();
+            },
+
+            onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+              print('$ad onAdFailedToShowFullScreenContent: $error');
+              ad.dispose();
+            },
+          );
+
+          setState(() {
+            _isRewardedAdReady = true;
+          });
+        },
+        onAdFailedToLoad: (err) {
+          print('Failed to load a rewarded ad: ${err.message}');
+          setState(() {
+            _isRewardedAdReady = false;
+          });
+        },
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _loadRewardedAd();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -236,6 +285,29 @@ class _LoginState extends State<LoginPage> {
                     )),
               ],
             ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                height: 45,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(25.0), color: Colors.red),
+                child: MaterialButton(
+                  //When clicked, the app will contact firebase for authentication
+                  //using user's inputted login credential
+                  onPressed: () async {
+                    if (_isRewardedAdReady) {
+                      _rewardedAd?.show(onUserEarnedReward: (RewardedAd ad, RewardItem reward) {});
+                    }
+                  },
+                  child: Text(
+                    'Click here for rewarded ad',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
           ],
         ),
       ),
@@ -244,14 +316,8 @@ class _LoginState extends State<LoginPage> {
 
   @override
   void dispose() {
-    // Dispose a BannerAd object
-    //_myBanner.dispose();
-
-    // Dispose an InterstitialAd object
-    //_interstitialAd?.dispose();
-
     // Dispose a RewardedAd object
-    //_rewardedAd?.dispose();
+    _rewardedAd?.dispose();
 
     super.dispose();
   }

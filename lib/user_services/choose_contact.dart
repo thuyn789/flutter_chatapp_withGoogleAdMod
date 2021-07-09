@@ -9,8 +9,6 @@ import 'package:chatapp_admod/app_services/login.dart';
 import 'package:chatapp_admod/user_services/chat_screen.dart';
 import 'package:chatapp_admod/cloud_services/firebase_services.dart';
 
-import 'dart:io';
-
 class ChooseContact extends StatefulWidget {
   ChooseContact({
     required this.userObj,
@@ -32,31 +30,72 @@ class ChooseContact extends StatefulWidget {
 }
 
 class _ChooseContactState extends State<ChooseContact> {
-
-  //_isBannerAdReady
-  //bool _isBannerAdReady = false;
-  /*
-  Future<InitializationStatus> _initGoogleMobileAds()  {
-    // TODO: Initialize Google Mobile Ads SDK
-    return MobileAds.instance.initialize();
-  }
-
+  //Banner Ad variables
   late BannerAd _myBanner;
+  bool _isBannerAdReady = false;
+
+  //Interstitial ad variables
+  InterstitialAd? _interstitialAd;
+  bool _isInterstitialAdReady = false;
+
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: AdHelper.interstitialAdUnitId,
+      request: AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          this._interstitialAd = ad;
+
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (context) => ChooseContact(
+                  userObj: widget.userObj,
+                  signInMethod: widget.signInMethod)));
+              ad.dispose();
+            },
+
+            onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+              print('$ad onAdFailedToShowFullScreenContent: $error');
+              ad.dispose();
+            },
+          );
+
+          _isInterstitialAdReady = true;
+        },
+        onAdFailedToLoad: (err) {
+          print('Failed to load an interstitial ad: ${err.message}');
+          _isInterstitialAdReady = false;
+        },
+      ),
+    );
+  }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
 
-    final BannerAd _myBanner = BannerAd(
+    _myBanner = BannerAd(
       adUnitId: AdHelper.bannerAdUnitId,
       size: AdSize.banner,
       request: AdRequest(),
-      listener: BannerAdListener(),
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          setState(() {
+            _isBannerAdReady = true;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          print('Failed to load a banner ad: ${err.message}');
+          _isBannerAdReady = false;
+          ad.dispose();
+        },
+      ),
     );
-
     _myBanner.load();
-  }*/
+    _loadInterstitialAd();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -148,15 +187,31 @@ class _ChooseContactState extends State<ChooseContact> {
               }
             },
           ),
-          //if (_isBannerAdReady)
-            /*Align(
+          if (_isBannerAdReady)
+            Align(
               alignment: Alignment.bottomCenter,
               child: Container(
                 width: _myBanner.size.width.toDouble(),
                 height: _myBanner.size.height.toDouble(),
                 child: AdWidget(ad: _myBanner),
               ),
-            ),*/
+            ),
+          //if (_isInterstitialAdReady)
+          Align(
+            alignment: Alignment.center,
+            child: MaterialButton(
+                onPressed: () {
+                  if (_isInterstitialAdReady) {
+                    _interstitialAd?.show();
+                  }
+                },
+                child: Text(
+                  'Click here for interstitial ad',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red),
+                )),
+          ),
         ]),
       ),
       floatingActionButton: SpeedDial(
@@ -226,13 +281,10 @@ class _ChooseContactState extends State<ChooseContact> {
   @override
   void dispose() {
     // Dispose a BannerAd object
-    //_myBanner.dispose();
+    _myBanner.dispose();
 
     // Dispose an InterstitialAd object
-    //_interstitialAd?.dispose();
-
-    // Dispose a RewardedAd object
-    //_rewardedAd?.dispose();
+    _interstitialAd?.dispose();
 
     super.dispose();
   }
