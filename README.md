@@ -118,6 +118,13 @@ var firebaseConfig = {
 
 ## Ad Structure
 
+- choose_contact.dart will contain two ad types:
+  + Banner Ad
+  + Interstitial Ad
+
+- login.dart will contain one type of ad:
+  + Rewarded Ad 
+
 
 ## App Test
 
