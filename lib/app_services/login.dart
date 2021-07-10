@@ -4,8 +4,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'package:chatapp_admod/admod_services/ad_helper.dart';
 import 'package:chatapp_admod/app_services/signup.dart';
-import 'package:chatapp_admod/user_services/choose_contact.dart';
 import 'package:chatapp_admod/cloud_services/firebase_services.dart';
+import 'package:chatapp_admod/user_services/choose_contact.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -19,47 +19,6 @@ class _LoginState extends State<LoginPage> {
 
   late RewardedAd _rewardedAd;
   bool _isRewardedAdReady = false;
-
-  void _loadRewardedAd() {
-    RewardedAd.load(
-      adUnitId: AdHelper.rewardedAdUnitId,
-      request: AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) {
-          this._rewardedAd = ad;
-
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (ad) {
-              setState(() {
-                _isRewardedAdReady = false;
-              });
-              _loadRewardedAd();
-
-              //Navigator.pushReplacement(
-                  //context, MaterialPageRoute(builder: (context) => LoginPage()));
-
-              ad.dispose();
-            },
-
-            onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
-              print('$ad onAdFailedToShowFullScreenContent: $error');
-              ad.dispose();
-            },
-          );
-
-          setState(() {
-            _isRewardedAdReady = true;
-          });
-        },
-        onAdFailedToLoad: (err) {
-          print('Failed to load a rewarded ad: ${err.message}');
-          setState(() {
-            _isRewardedAdReady = false;
-          });
-        },
-      ),
-    );
-  }
 
   @override
   void initState() {
@@ -310,6 +269,47 @@ class _LoginState extends State<LoginPage> {
             SizedBox(height: 10),
           ],
         ),
+      ),
+    );
+  }
+
+  void _loadRewardedAd() {
+    RewardedAd.load(
+      adUnitId: AdHelper.rewardedAdUnitId,
+      request: AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          this._rewardedAd = ad;
+
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              setState(() {
+                _isRewardedAdReady = false;
+              });
+              _loadRewardedAd();
+
+              //Navigator.pushReplacement(
+              //context, MaterialPageRoute(builder: (context) => LoginPage()));
+
+              ad.dispose();
+            },
+
+            onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+              print('$ad onAdFailedToShowFullScreenContent: $error');
+              ad.dispose();
+            },
+          );
+
+          setState(() {
+            _isRewardedAdReady = true;
+          });
+        },
+        onAdFailedToLoad: (err) {
+          print('Failed to load a rewarded ad: ${err.message}');
+          setState(() {
+            _isRewardedAdReady = false;
+          });
+        },
       ),
     );
   }

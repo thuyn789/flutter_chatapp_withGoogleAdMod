@@ -39,6 +39,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_native_splash: ^1.2.0
+  integration_test:
+    sdk: flutter
+  test: ^1.14.4
 
 #This is a configuration for splash screen for android and web app
 flutter_native_splash:

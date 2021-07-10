@@ -1,4 +1,3 @@
-import 'package:chatapp_admod/user_services/user_profile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -7,6 +6,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:chatapp_admod/admod_services/ad_helper.dart';
 import 'package:chatapp_admod/app_services/login.dart';
 import 'package:chatapp_admod/user_services/chat_screen.dart';
+import 'package:chatapp_admod/user_services/user_profile.dart';
 import 'package:chatapp_admod/cloud_services/firebase_services.dart';
 
 class ChooseContact extends StatefulWidget {
@@ -38,62 +38,14 @@ class _ChooseContactState extends State<ChooseContact> {
   InterstitialAd? _interstitialAd;
   bool _isInterstitialAdReady = false;
 
-  void _loadInterstitialAd() {
-    InterstitialAd.load(
-      adUnitId: AdHelper.interstitialAdUnitId,
-      request: AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          this._interstitialAd = ad;
-
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (ad) {
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (context) => ChooseContact(
-                  userObj: widget.userObj,
-                  signInMethod: widget.signInMethod)));
-              ad.dispose();
-            },
-
-            onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-              print('$ad onAdFailedToShowFullScreenContent: $error');
-              ad.dispose();
-            },
-          );
-
-          _isInterstitialAdReady = true;
-        },
-        onAdFailedToLoad: (err) {
-          print('Failed to load an interstitial ad: ${err.message}');
-          _isInterstitialAdReady = false;
-        },
-      ),
-    );
-  }
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
 
-    _myBanner = BannerAd(
-      adUnitId: AdHelper.bannerAdUnitId,
-      size: AdSize.banner,
-      request: AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (_) {
-          setState(() {
-            _isBannerAdReady = true;
-          });
-        },
-        onAdFailedToLoad: (ad, err) {
-          print('Failed to load a banner ad: ${err.message}');
-          _isBannerAdReady = false;
-          ad.dispose();
-        },
-      ),
-    );
+    _myBanner = _loadBannerAd();
     _myBanner.load();
+
     _loadInterstitialAd();
   }
 
@@ -105,7 +57,7 @@ class _ChooseContactState extends State<ChooseContact> {
         title: Text(
           'Chat App',
           style:
-              TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent),
+          TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent),
         ),
         actions: <Widget>[
           TextButton.icon(
@@ -149,9 +101,9 @@ class _ChooseContactState extends State<ChooseContact> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10.0, vertical: 20.0),
                       children:
-                          snapshot.data!.docs.map((DocumentSnapshot document) {
+                      snapshot.data!.docs.map((DocumentSnapshot document) {
                         Map<String, dynamic> recipient =
-                            document.data() as Map<String, dynamic>;
+                        document.data() as Map<String, dynamic>;
                         String firstname = recipient['first_name'];
                         String lastname = recipient['last_name'];
                         String name = '$firstname $lastname';
@@ -166,10 +118,10 @@ class _ChooseContactState extends State<ChooseContact> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => ChatScreen(
-                                            userObj: widget.userObj,
-                                            signInMethod: widget.signInMethod,
-                                            recipient: recipient,
-                                          )));
+                                        userObj: widget.userObj,
+                                        signInMethod: widget.signInMethod,
+                                        recipient: recipient,
+                                      )));
                             },
                             leading: CircleAvatar(
                               radius: 30,
@@ -275,6 +227,59 @@ class _ChooseContactState extends State<ChooseContact> {
           child: Text('Yes'),
         ),
       ],
+    );
+  }
+
+  BannerAd _loadBannerAd() {
+    return BannerAd(
+      adUnitId: AdHelper.bannerAdUnitId,
+      size: AdSize.banner,
+      request: AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          setState(() {
+            _isBannerAdReady = true;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          print('Failed to load a banner ad: ${err.message}');
+          _isBannerAdReady = false;
+          ad.dispose();
+        },
+      ),
+    );
+  }
+
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: AdHelper.interstitialAdUnitId,
+      request: AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          this._interstitialAd = ad;
+
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (context) => ChooseContact(
+                  userObj: widget.userObj,
+                  signInMethod: widget.signInMethod)));
+              ad.dispose();
+            },
+
+            onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+              print('$ad onAdFailedToShowFullScreenContent: $error');
+              ad.dispose();
+            },
+          );
+
+          _isInterstitialAdReady = true;
+        },
+        onAdFailedToLoad: (err) {
+          print('Failed to load an interstitial ad: ${err.message}');
+          _isInterstitialAdReady = false;
+        },
+      ),
     );
   }
 
