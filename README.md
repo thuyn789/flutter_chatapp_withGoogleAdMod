@@ -129,7 +129,7 @@ var firebaseConfig = {
 ## App Test
 
 - Integration test:
-  + Run command: flutter drive --driver integration_test/driver.dart --target integration_test/app_test.dart
+  + Run command: flutter drive --driver test/integration_test/driver.dart --target test/integration_test/app_test.dart
   + Test result: build/integration_response_data.json
 
 
