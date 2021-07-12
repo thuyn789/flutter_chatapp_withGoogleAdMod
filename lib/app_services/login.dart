@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -118,14 +117,10 @@ class _LoginState extends State<LoginPage> {
                       .login(_email.text.trim(), _password.text.trim());
                   if (successful) {
                     //when successful, navigate user to home page
-                    DocumentSnapshot database =
-                        await AuthServices().retrieveUserData();
-                    final userObj = database.data() as Map<String, dynamic>;
                     Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                             builder: (context) => ChooseContact(
-                                  userObj: userObj,
                                   signInMethod: 0,
                                 )
                         )
@@ -168,13 +163,10 @@ class _LoginState extends State<LoginPage> {
                   await AuthServices()
                       .signInWithGoogle();
 
-                  DocumentSnapshot database = await AuthServices().retrieveUserData();
-                  final userObj = database.data() as Map<String, dynamic>;
                   Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                           builder: (context) => ChooseContact(
-                            userObj: userObj,
                             signInMethod: 1,
                           )
                       )
@@ -200,14 +192,10 @@ class _LoginState extends State<LoginPage> {
                   await AuthServices()
                       .signInAnon();
 
-                  DocumentSnapshot database = await AuthServices().retrieveUserData();
-                  final userObj = database.data() as Map<String, dynamic>;
-
                   Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                           builder: (context) => ChooseContact(
-                            userObj: userObj,
                             signInMethod: 1,
                           )
                       )

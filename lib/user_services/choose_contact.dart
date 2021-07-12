@@ -11,13 +11,8 @@ import 'package:chatapp_admod/cloud_services/firebase_services.dart';
 
 class ChooseContact extends StatefulWidget {
   ChooseContact({
-    required this.userObj,
     required this.signInMethod,
   });
-
-  //User Object - A map of DocumentSnapshot
-  //Contain user information, name, uid, and email
-  final userObj;
 
   //Sign in method
   //0 - Email/password
@@ -102,8 +97,8 @@ class _ChooseContactState extends State<ChooseContact> {
                           horizontal: 10.0, vertical: 20.0),
                       children:
                       snapshot.data!.docs.map((DocumentSnapshot document) {
-                        Map<String, dynamic> recipient =
-                        document.data() as Map<String, dynamic>;
+                        //Initialize recipient data
+                        final recipient = document.data() as Map<String, dynamic>;
                         String firstname = recipient['first_name'];
                         String lastname = recipient['last_name'];
                         String name = '$firstname $lastname';
@@ -118,7 +113,6 @@ class _ChooseContactState extends State<ChooseContact> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => ChatScreen(
-                                        userObj: widget.userObj,
                                         signInMethod: widget.signInMethod,
                                         recipient: recipient,
                                       )));
@@ -198,9 +192,7 @@ class _ChooseContactState extends State<ChooseContact> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => UserProfilePage(
-                        userObj: widget.userObj,
-                      ),
+                      builder: (context) => UserProfilePage(),
                     ));
               },
             ),
@@ -262,7 +254,6 @@ class _ChooseContactState extends State<ChooseContact> {
             onAdDismissedFullScreenContent: (ad) {
               Navigator.pushReplacement(
                   context, MaterialPageRoute(builder: (context) => ChooseContact(
-                  userObj: widget.userObj,
                   signInMethod: widget.signInMethod)));
               ad.dispose();
             },

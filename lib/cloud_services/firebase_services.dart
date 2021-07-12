@@ -11,8 +11,7 @@ class AuthServices {
   //Login with existing username and password credential
   Future<bool> login(String email, String password) async {
     try {
-      await _auth
-          .signInWithEmailAndPassword(email: email, password: password);
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
       return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
@@ -39,20 +38,21 @@ class AuthServices {
       idToken: googleAuth.idToken,
     );
 
-    UserCredential userCredential = await _auth.signInWithCredential(credential);
+    UserCredential userCredential =
+        await _auth.signInWithCredential(credential);
 
     final gUser = userCredential.user;
 
-    if(userCredential.additionalUserInfo!.isNewUser){
+    if (userCredential.additionalUserInfo!.isNewUser) {
       await database.collection("users").doc(gUser!.uid).set({
-            'user_id': gUser.uid.trim(),
-            'first_name': gUser.displayName!.trim(),
-            'last_name': ''.trim(),
-            'email': gUser.email!.trim(),
-            'user_role': 'customer'.trim(),
-            'reg_date_time': gUser.metadata.creationTime,
-            'urlAvatar' : urlDefaultAvatar.trim()
-          });
+        'user_id': gUser.uid.trim(),
+        'first_name': gUser.displayName!.trim(),
+        'last_name': ''.trim(),
+        'email': gUser.email!.trim(),
+        'user_role': 'customer'.trim(),
+        'reg_date_time': gUser.metadata.creationTime,
+        'urlAvatar': urlDefaultAvatar.trim()
+      });
     }
 
     // Once signed in, return the google user
@@ -62,21 +62,21 @@ class AuthServices {
 
   //Anonymous sign-in
   Future<User?> signInAnon() async {
-
-    UserCredential userCredential = await FirebaseAuth.instance.signInAnonymously();
+    UserCredential userCredential =
+        await FirebaseAuth.instance.signInAnonymously();
 
     final anonUser = userCredential.user;
 
-    if(userCredential.additionalUserInfo!.isNewUser){
+    if (userCredential.additionalUserInfo!.isNewUser) {
       await database.collection("users").doc(anonUser!.uid).set({
-            'user_id': anonUser.uid.trim(),
-            'first_name': 'Anonymous'.trim(),
-            'last_name': 'Anonymous'.trim(),
-            'email': 'N/A'.trim(),
-            'user_role': 'customer'.trim(),
-            'reg_date_time': anonUser.metadata.creationTime,
-            'urlAvatar' : urlDefaultAvatar.trim()
-          });
+        'user_id': anonUser.uid.trim(),
+        'first_name': 'Anonymous'.trim(),
+        'last_name': 'Anonymous'.trim(),
+        'email': 'N/A'.trim(),
+        'user_role': 'customer'.trim(),
+        'reg_date_time': anonUser.metadata.creationTime,
+        'urlAvatar': urlDefaultAvatar.trim()
+      });
     }
 
     // Once signed in, return the google user
@@ -84,27 +84,26 @@ class AuthServices {
     return anonUser;
   }
 
-
   //Register and store new user information
-  Future<bool> signUp(String firstName, String lastName, String email, String password) async {
+  Future<bool> signUp(
+      String firstName, String lastName, String email, String password) async {
     try {
       await _signUpHelper(
-          email.trim(),
-          password.trim(),
+        email.trim(),
+        password.trim(),
       ).then((value) async {
         User? user = _auth.currentUser;
-        await database.collection("users").doc(user!.uid).set(
-            {
-              'user_id': user.uid.trim(),
-              'first_name': firstName.trim(),
-              'last_name':  lastName.trim(),
-              'email': email.trim(),
-              'user_role': 'customer'.trim(),
-              'reg_date_time': user.metadata.creationTime,
-              'urlAvatar' : urlDefaultAvatar.trim()
-            });
+        await database.collection("users").doc(user!.uid).set({
+          'user_id': user.uid.trim(),
+          'first_name': firstName.trim(),
+          'last_name': lastName.trim(),
+          'email': email.trim(),
+          'user_role': 'customer'.trim(),
+          'reg_date_time': user.metadata.creationTime,
+          'urlAvatar': urlDefaultAvatar.trim()
+        });
       });
-        return true;
+      return true;
     } catch (e) {
       print(e);
       return false;
@@ -114,8 +113,8 @@ class AuthServices {
   //Register new user with user name and password
   Future<void> _signUpHelper(String email, String password) async {
     try {
-      await _auth
-          .createUserWithEmailAndPassword(email: email, password: password);
+      await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         print('The password provided is too weak.');
@@ -134,31 +133,24 @@ class AuthServices {
 
   //Retrieve specific user data
   Future<DocumentSnapshot> retrieveUserData() async {
-    return await FirebaseFirestore.instance
-        .collection('users')
-        .doc(_auth.currentUser!.uid)
-        .get();
+    return await database.collection('users').doc(_auth.currentUser!.uid).get();
   }
 
   //Update user profile
   Future<void> updateUser(
-      String userID,
-      String email,
-      String firstName,
-      String lastName,
-      ) {
-    return database
-        .collection('users')
-        .doc(userID)
-        .update(
+    String email,
+    String firstName,
+    String lastName,
+  ) {
+    return database.collection('users').doc(_auth.currentUser!.uid).update(
         {'email': email, 'first_name': firstName, 'last_name': lastName});
   }
 
   //Create a stream that listens to message changes
-  Stream<QuerySnapshot> messageStream(String userID, String recipientID) {
-    return FirebaseFirestore.instance
+  Stream<QuerySnapshot> messageStream(String recipientID) {
+    return database
         .collection('chat_message')
-        .doc(userID)
+        .doc(_auth.currentUser!.uid)
         .collection(recipientID)
         .orderBy('sendAt', descending: true)
         .snapshots();
@@ -166,6 +158,11 @@ class AuthServices {
 
   //Retrieve all user via a stream
   Stream<QuerySnapshot> usersStream() {
-    return FirebaseFirestore.instance.collection('users').snapshots();
+    return database.collection('users').snapshots();
+  }
+
+  //Retrieve one user's data via a stream
+  Stream<DocumentSnapshot> userDataStream() {
+    return database.collection('users').doc(_auth.currentUser!.uid).snapshots();
   }
 }

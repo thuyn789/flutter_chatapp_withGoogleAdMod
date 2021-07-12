@@ -7,14 +7,9 @@ import 'package:chatapp_admod/user_services/chat_message.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
-    required this.userObj,
     required this.signInMethod,
     required this.recipient,
   });
-
-  //User Object - A map of DocumentSnapshot
-  //Contain user information, name, uid, and email
-  final userObj;
 
   //Sign in method
   //1 - Email/password
@@ -32,6 +27,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  late final userObj;
 
   @override
   Widget build(BuildContext context) {
@@ -108,11 +104,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Widget _messageStreamWidget() {
-    String userID = widget.userObj['user_id'];
     String recipientID = widget.recipient['user_id'];
 
     return StreamBuilder<QuerySnapshot>(
-        stream: AuthServices().messageStream(userID, recipientID),
+        stream: AuthServices().messageStream(recipientID),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Something went wrong'));
@@ -125,14 +120,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           return ListView(
             reverse: true,
             children: snapshot.data!.docs.map((DocumentSnapshot document) {
-              Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+              final data = document.data() as Map<String, dynamic>;
               return Row(
                 children: <Widget>[
                   ChatMessage(
                     text: data['message'],
                     name: data['fromName'],
                     date: data['timestamp'],
-                    urlAvatar: widget.userObj['urlAvatar'],
+                    urlAvatar: widget.recipient['urlAvatar'],
                   )
                 ],
               );
@@ -188,14 +183,17 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _sendMessageToDb(String message) async {
-    String userID = widget.userObj['user_id'];
+    DocumentSnapshot userData = await AuthServices().retrieveUserData();
+    final userObj = userData.data() as Map<String, dynamic>;
+    
+    String userID = userObj['user_id'];
     String recipientID = widget.recipient['user_id'];
 
     final database = FirebaseFirestore.instance.collection('chat_message');
 
     await database.doc(userID).collection(recipientID).add({
       'fromUserID': userID,
-      'fromName': widget.userObj['first_name'],
+      'fromName': userObj['first_name'],
       'message': message,
       'timestamp': _dateHandler(),
       'sendAt': DateTime.now(),
@@ -205,7 +203,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     await database.doc(recipientID).collection(userID).add({
       'fromUserID': userID,
-      'fromName': widget.userObj['first_name'],
+      'fromName': userObj['first_name'],
       'message': message,
       'timestamp': _dateHandler(),
       'sendAt': DateTime.now(),

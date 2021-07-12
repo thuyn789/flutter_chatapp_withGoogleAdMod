@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'package:chatapp_admod/cloud_services/firebase_services.dart';
@@ -101,14 +100,10 @@ class _SignUpPageState extends State<SignUpPage> {
                   );
                   if (successful) {
                     //when successful, navigate user to chat screen page
-                    DocumentSnapshot database =
-                        await AuthServices().retrieveUserData();
-                    final userObj = database.data() as Map<String, dynamic>;
                     Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                             builder: (context) => ChooseContact(
-                                  userObj: userObj,
                                   signInMethod: 0,
                                 )));
                   } else {
